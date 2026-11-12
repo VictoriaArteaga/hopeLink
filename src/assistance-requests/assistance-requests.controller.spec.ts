@@ -6,7 +6,15 @@ import { RequestStatus } from './enums/request-status.enum';
 
 describe('AssistanceRequestsController', () => {
   let controller: AssistanceRequestsController;
-  let service: AssistanceRequestsService;
+
+  const serviceMock = {
+    create: jest.fn(),
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    update: jest.fn(),
+    updateStatus: jest.fn(),
+    remove: jest.fn(),
+  };
 
   const createDto: CreateAssistanceRequestDto = {
     personaAfectadaId: 7,
@@ -15,79 +23,74 @@ describe('AssistanceRequestsController', () => {
   };
 
   beforeEach(async () => {
+    jest.resetAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AssistanceRequestsController],
-      providers: [AssistanceRequestsService],
+      providers: [
+        { provide: AssistanceRequestsService, useValue: serviceMock },
+      ],
     }).compile();
 
     controller = module.get<AssistanceRequestsController>(
       AssistanceRequestsController,
     );
-    service = module.get<AssistanceRequestsService>(AssistanceRequestsService);
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  it('create delega en el servicio', () => {
-    const spy = jest.spyOn(service, 'create');
+  it('create delega en el servicio', async () => {
+    const expected = { message: 'ok', data: { id: 1 } };
+    serviceMock.create.mockResolvedValue(expected);
 
-    const result = controller.create(createDto);
-
-    expect(spy).toHaveBeenCalledWith(createDto);
-    expect(result.data.id).toBe(1);
+    await expect(controller.create(createDto)).resolves.toBe(expected);
+    expect(serviceMock.create).toHaveBeenCalledWith(createDto);
   });
 
-  it('findAll delega en el servicio', () => {
-    controller.create(createDto);
-    const spy = jest.spyOn(service, 'findAll');
+  it('findAll delega en el servicio', async () => {
+    const expected = { message: 'ok', data: [{ id: 1 }] };
+    serviceMock.findAll.mockResolvedValue(expected);
 
-    const result = controller.findAll();
-
-    expect(spy).toHaveBeenCalled();
-    expect(result.data).toHaveLength(1);
+    await expect(controller.findAll()).resolves.toBe(expected);
+    expect(serviceMock.findAll).toHaveBeenCalled();
   });
 
-  it('findOne delega en el servicio', () => {
-    controller.create(createDto);
-    const spy = jest.spyOn(service, 'findById');
+  it('findOne delega en el servicio', async () => {
+    const expected = { message: 'ok', data: { id: 1 } };
+    serviceMock.findById.mockResolvedValue(expected);
 
-    const result = controller.findOne(1);
-
-    expect(spy).toHaveBeenCalledWith(1);
-    expect(result.data.id).toBe(1);
+    await expect(controller.findOne(1)).resolves.toBe(expected);
+    expect(serviceMock.findById).toHaveBeenCalledWith(1);
   });
 
-  it('update delega en el servicio', () => {
-    controller.create(createDto);
-    const spy = jest.spyOn(service, 'update');
+  it('update delega en el servicio', async () => {
+    const expected = { message: 'ok', data: { id: 1, tipoAyuda: 'Agua' } };
+    serviceMock.update.mockResolvedValue(expected);
 
-    const result = controller.update(1, { tipoAyuda: 'Agua' });
-
-    expect(spy).toHaveBeenCalledWith(1, { tipoAyuda: 'Agua' });
-    expect(result.data.tipoAyuda).toBe('Agua');
+    await expect(controller.update(1, { tipoAyuda: 'Agua' })).resolves.toBe(
+      expected,
+    );
+    expect(serviceMock.update).toHaveBeenCalledWith(1, { tipoAyuda: 'Agua' });
   });
 
-  it('updateStatus delega en el servicio', () => {
-    controller.create(createDto);
-    const spy = jest.spyOn(service, 'updateStatus');
+  it('updateStatus delega en el servicio', async () => {
+    const expected = { message: 'ok', data: { id: 1 } };
+    serviceMock.updateStatus.mockResolvedValue(expected);
 
-    const result = controller.updateStatus(1, {
+    await expect(
+      controller.updateStatus(1, { estado: RequestStatus.ATENDIDA }),
+    ).resolves.toBe(expected);
+    expect(serviceMock.updateStatus).toHaveBeenCalledWith(1, {
       estado: RequestStatus.ATENDIDA,
     });
-
-    expect(spy).toHaveBeenCalledWith(1, { estado: RequestStatus.ATENDIDA });
-    expect(result.data.estado).toBe(RequestStatus.ATENDIDA);
   });
 
-  it('remove delega en el servicio', () => {
-    controller.create(createDto);
-    const spy = jest.spyOn(service, 'remove');
+  it('remove delega en el servicio', async () => {
+    const expected = { message: 'ok' };
+    serviceMock.remove.mockResolvedValue(expected);
 
-    controller.remove(1);
-
-    expect(spy).toHaveBeenCalledWith(1);
-    expect(controller.findAll().data).toHaveLength(0);
+    await expect(controller.remove(1)).resolves.toBe(expected);
+    expect(serviceMock.remove).toHaveBeenCalledWith(1);
   });
 });
