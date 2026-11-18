@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { AssistanceRequest } from '../../assistance-requests/entities/assistance-request.entity';
 import { Rol } from '../enums/rol.enum';
 
 @Entity('users')
@@ -20,4 +21,7 @@ export class User {
 
   @Column({ name: 'documento_identidad', unique: true })
   documentoIdentidad: string;
+
+  @OneToMany(() => AssistanceRequest, (request) => request.registradoPor)
+  solicitudesRegistradas: AssistanceRequest[];
 }
