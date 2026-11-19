@@ -18,6 +18,7 @@ export class AssistanceRequestsService {
   async create(createDto: CreateAssistanceRequestDto) {
     const newRequest = this.requestsRepo.create({
       personaAfectadaId: createDto.personaAfectadaId,
+      registradoPorId: createDto.registradoPorId ?? null,
       tipoAyuda: createDto.tipoAyuda,
       descripcion: createDto.descripcion,
       prioridad: createDto.prioridad ?? PriorityLevel.MEDIA,
