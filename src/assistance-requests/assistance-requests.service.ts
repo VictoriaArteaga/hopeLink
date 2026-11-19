@@ -47,9 +47,16 @@ export class AssistanceRequestsService {
 
   async update(id: number, changes: UpdateAssistanceRequestDto) {
     const request = await this.findOne(id);
-    const { personaAfectadaId, tipoAyuda, descripcion, prioridad } = changes;
+    const {
+      personaAfectadaId,
+      registradoPorId,
+      tipoAyuda,
+      descripcion,
+      prioridad,
+    } = changes;
 
     request.personaAfectadaId = personaAfectadaId ?? request.personaAfectadaId;
+    request.registradoPorId = registradoPorId ?? request.registradoPorId;
     request.tipoAyuda = tipoAyuda ?? request.tipoAyuda;
     request.descripcion = descripcion ?? request.descripcion;
     request.prioridad = prioridad ?? request.prioridad;
