@@ -11,6 +11,10 @@ export class CreateAssistanceRequestDto {
   @IsUUID()
   personaAfectadaId: string;
 
+  @IsOptional()
+  @IsUUID()
+  registradoPorId?: string;
+
   @IsNotEmpty()
   @IsString()
   tipoAyuda: string;

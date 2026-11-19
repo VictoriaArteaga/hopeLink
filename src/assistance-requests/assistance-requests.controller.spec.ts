@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { jest } from '@jest/globals';
 import { AssistanceRequestsController } from './assistance-requests.controller';
 import { AssistanceRequestsService } from './assistance-requests.service';
 import { CreateAssistanceRequestDto } from './dto/create-assistance-request.dto';

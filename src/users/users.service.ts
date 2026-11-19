@@ -22,6 +22,13 @@ export class UsersService {
     if (await this.usersRepo.existsBy({ correo })) {
       throw new ConflictException('Ya existe un usuario con ese correo');
     }
+    if (
+      await this.usersRepo.existsBy({
+        documentoIdentidad: userData.documentoIdentidad,
+      })
+    ) {
+      throw new ConflictException('Ya existe un usuario con ese documento');
+    }
 
     const user = await this.usersRepo.save(
       this.usersRepo.create({ ...userData, correo }),
@@ -30,7 +37,10 @@ export class UsersService {
   }
 
   async findAll() {
-    return { message: 'Usuarios encontrados', data: await this.usersRepo.find() };
+    return {
+      message: 'Usuarios encontrados',
+      data: await this.usersRepo.find(),
+    };
   }
 
   async findOne(id: string) {
@@ -45,6 +55,16 @@ export class UsersService {
     }
 
     const user = await this.getById(id);
+
+    if (
+      changes.documentoIdentidad &&
+      changes.documentoIdentidad !== user.documentoIdentidad &&
+      (await this.usersRepo.existsBy({
+        documentoIdentidad: changes.documentoIdentidad,
+      }))
+    ) {
+      throw new ConflictException('Ya existe un usuario con ese documento');
+    }
 
     const correo = changes.correo?.trim().toLowerCase();
     if (correo && correo !== user.correo) {
