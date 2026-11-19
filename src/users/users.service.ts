@@ -4,69 +4,71 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  private readonly users: User[] = [];
+  constructor(
+    @InjectRepository(User)
+    private readonly usersRepo: Repository<User>,
+  ) {}
 
-  create(userData: CreateUserDto) {
+  async create(userData: CreateUserDto) {
     const correo = userData.correo.trim().toLowerCase();
-    if (this.users.some((user) => user.correo === correo)) {
+    if (await this.usersRepo.existsBy({ correo })) {
       throw new ConflictException('Ya existe un usuario con ese correo');
     }
 
-    const user: User = { id: randomUUID(), ...userData, correo };
-    this.users.push(user);
+    const user = await this.usersRepo.save(
+      this.usersRepo.create({ ...userData, correo }),
+    );
     return { message: 'Usuario creado con éxito', data: user };
   }
 
-  findAll() {
-    return { message: 'Usuarios encontrados', data: this.users };
+  async findAll() {
+    return { message: 'Usuarios encontrados', data: await this.usersRepo.find() };
   }
 
-  findOne(id: string) {
-    const user = this.users.find((item) => item.id === id);
-    if (!user) {
-      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
-    }
-    return { message: 'Usuario encontrado', data: user };
+  async findOne(id: string) {
+    return { message: 'Usuario encontrado', data: await this.getById(id) };
   }
 
-  update(id: string, changes: UpdateUserDto) {
+  async update(id: string, changes: UpdateUserDto) {
     if (Object.keys(changes).length === 0) {
       throw new BadRequestException(
         'Debe enviar al menos un campo para actualizar',
       );
     }
 
-    const user = this.users.find((item) => item.id === id);
-    if (!user) {
-      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
-    }
+    const user = await this.getById(id);
 
     const correo = changes.correo?.trim().toLowerCase();
-    if (
-      correo &&
-      this.users.some((item) => item.id !== id && item.correo === correo)
-    ) {
-      throw new ConflictException('Ya existe un usuario con ese correo');
+    if (correo && correo !== user.correo) {
+      if (await this.usersRepo.existsBy({ correo })) {
+        throw new ConflictException('Ya existe un usuario con ese correo');
+      }
     }
 
     Object.assign(user, changes, correo ? { correo } : {});
-    return { message: 'Usuario actualizado con éxito', data: user };
+    const saved = await this.usersRepo.save(user);
+    return { message: 'Usuario actualizado con éxito', data: saved };
   }
 
-  remove(id: string) {
-    const index = this.users.findIndex((user) => user.id === id);
-    if (index === -1) {
+  async remove(id: string) {
+    const user = await this.getById(id);
+    await this.usersRepo.remove(user);
+    return { message: 'Usuario eliminado con éxito' };
+  }
+
+  private async getById(id: string) {
+    const user = await this.usersRepo.findOneBy({ id });
+    if (!user) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
-
-    this.users.splice(index, 1);
-    return { message: 'Usuario eliminado con éxito' };
+    return user;
   }
 }

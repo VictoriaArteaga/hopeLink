@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateAssistanceRequestDto } from './dto/create-assistance-request.dto';
 import { UpdateAssistanceRequestDto } from './dto/update-assistance-request.dto';
 import { UpdateRequestStatusDto } from './dto/update-request-status.dto';
@@ -8,78 +10,76 @@ import { RequestStatus } from './enums/request-status.enum';
 
 @Injectable()
 export class AssistanceRequestsService {
-  private requests: AssistanceRequest[] = [];
-  private nextId = 1;
+  constructor(
+    @InjectRepository(AssistanceRequest)
+    private readonly requestsRepo: Repository<AssistanceRequest>,
+  ) {}
 
-  create(createDto: CreateAssistanceRequestDto) {
-    const now = new Date();
-    const newRequest: AssistanceRequest = {
-      id: this.nextId++,
+  async create(createDto: CreateAssistanceRequestDto) {
+    const newRequest = this.requestsRepo.create({
       personaAfectadaId: createDto.personaAfectadaId,
       tipoAyuda: createDto.tipoAyuda,
       descripcion: createDto.descripcion,
       prioridad: createDto.prioridad ?? PriorityLevel.MEDIA,
       estado: RequestStatus.PENDIENTE,
-      fechaCreacion: now,
-      fechaActualizacion: now,
-    };
-    this.requests.push(newRequest);
+    });
+    const saved = await this.requestsRepo.save(newRequest);
     return {
       message: 'Solicitud de asistencia creada con éxito',
-      data: newRequest,
+      data: saved,
     };
   }
 
-  findAll() {
+  async findAll() {
     return {
       message: 'Solicitudes de asistencia encontradas',
-      data: this.requests,
+      data: await this.requestsRepo.find(),
     };
   }
 
-  findById(id: number) {
+  async findById(id: number) {
     return {
       message: 'Solicitud de asistencia encontrada',
-      data: this.findOne(id),
+      data: await this.findOne(id),
     };
   }
 
-  update(id: number, changes: UpdateAssistanceRequestDto) {
-    
-    const request = this.findOne(id);
+  async update(id: number, changes: UpdateAssistanceRequestDto) {
+    const request = await this.findOne(id);
     const { personaAfectadaId, tipoAyuda, descripcion, prioridad } = changes;
-    
+
     request.personaAfectadaId = personaAfectadaId ?? request.personaAfectadaId;
     request.tipoAyuda = tipoAyuda ?? request.tipoAyuda;
     request.descripcion = descripcion ?? request.descripcion;
     request.prioridad = prioridad ?? request.prioridad;
-    request.fechaActualizacion = new Date();
+
+    const saved = await this.requestsRepo.save(request);
     return {
       message: 'Solicitud de asistencia actualizada con éxito',
-      data: request,
+      data: saved,
     };
   }
 
-  updateStatus(id: number, { estado }: UpdateRequestStatusDto) {
-    const request = this.findOne(id);
+  async updateStatus(id: number, { estado }: UpdateRequestStatusDto) {
+    const request = await this.findOne(id);
     request.estado = estado;
-    request.fechaActualizacion = new Date();
+    const saved = await this.requestsRepo.save(request);
     return {
       message: 'Estado de la solicitud actualizado con éxito',
-      data: request,
+      data: saved,
     };
   }
 
-  remove(id: number) {
-    const request = this.findOne(id);
-    this.requests = this.requests.filter((item) => item.id !== request.id);
+  async remove(id: number) {
+    const request = await this.findOne(id);
+    await this.requestsRepo.remove(request);
     return {
       message: 'Solicitud de asistencia eliminada con éxito',
     };
   }
 
-  private findOne(id: number) {
-    const request = this.requests.find((item) => item.id === id);
+  private async findOne(id: number) {
+    const request = await this.requestsRepo.findOneBy({ id });
     if (!request) {
       throw new NotFoundException(
         `Solicitud de asistencia con ID ${id} no encontrada`,
