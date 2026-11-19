@@ -1,114 +1,159 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Hope Link
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST para la gestión de ayuda humanitaria en situaciones de emergencia. Permite registrar a las **personas afectadas**, gestionar las **solicitudes de asistencia** que realizan y administrar los **usuarios** (personal) que las registran y atienden.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Proyecto desarrollado para la asignatura Electiva I – Frameworks Web.
 
-## Description
+## Tecnologías
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [NestJS](https://nestjs.com/) 12 (Node.js + TypeScript)
+- [TypeORM](https://typeorm.io/) como ORM
+- PostgreSQL 16 (vía Docker)
+- pgAdmin 4 (administración de la base de datos, opcional)
+- `class-validator` / `class-transformer` para validación de datos
+- Jest para pruebas y oxlint + Prettier para calidad de código
 
-## Project setup
+## Módulos implementados
 
-```bash
-$ npm install
-```
+| Módulo | Ruta base | Descripción |
+| --- | --- | --- |
+| Usuarios | `/users` | CRUD del personal. Roles: `REGISTRO`, `LOGISTICA`, `ATENCION`, `DISTRIBUCION`. |
+| Personas afectadas | `/affected-people` | CRUD de personas afectadas (nombre, edad, dirección, nivel de vulnerabilidad). |
+| Solicitudes de asistencia | `/assistance-requests` | CRUD de solicitudes, más `PATCH /assistance-requests/:id/status` para cambiar su estado. |
 
-## Compile and run the project
+Cada endpoint CRUD expone `POST /`, `GET /`, `GET /:id`, `PATCH /:id` y `DELETE /:id`.
 
-```bash
-# development
-$ npm run start
+- **Prioridad** de una solicitud: `BAJA`, `MEDIA` (por defecto), `ALTA`, `CRITICA`.
+- **Estado** de una solicitud: `PENDIENTE` (por defecto), `EN_PROCESO`, `ATENDIDA`, `CANCELADA`.
 
-# watch mode
-$ npm run start:dev
+> Las carpetas `auth`, `shelters`, `supplies`, `inventory`, `deliveries`, `emergencies`, `prioritization`, `audit` y `health` existen en `src/` pero aún no están conectadas a la aplicación.
 
-# production mode
-$ npm run start:prod
-```
+## Requisitos
 
-## Run tests
+- [Node.js](https://nodejs.org/) 20 o superior y npm
+- [Docker](https://www.docker.com/) y Docker Compose (para levantar PostgreSQL y pgAdmin)
+- Git
+
+## Instalación
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+git clone https://github.com/VictoriaArteaga/hope-link.git
+cd hope-link
+npm install
 ```
 
-## Deployment
+## Configuración de la base de datos
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+La base de datos es PostgreSQL y se levanta con Docker Compose (`docker-compose.yml`).
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 1. Crear el archivo `.env`
+
+Copia la plantilla y completa los valores:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+cp .env.example .env
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+| Variable | Descripción |
+| --- | --- |
+| `POSTGRES_DB` | Nombre de la base de datos que crea el contenedor. |
+| `POSTGRES_USER` | Usuario de PostgreSQL. |
+| `POSTGRES_PASSWORD` | Contraseña de PostgreSQL. |
+| `POSTGRES_PORT` | Puerto del host expuesto por Docker (por defecto `5432`). |
+| `PGADMIN_DEFAULT_EMAIL` | Correo para iniciar sesión en pgAdmin. |
+| `PGADMIN_DEFAULT_PASSWORD` | Contraseña de pgAdmin. |
+| `DB_HOST` | Host con el que la aplicación se conecta (`localhost` en local). |
+| `DB_PORT` | Puerto con el que la aplicación se conecta (igual a `POSTGRES_PORT`). |
+| `DB_NAME` | Nombre de la base de datos (igual a `POSTGRES_DB`). |
+| `DB_USER` | Usuario (igual a `POSTGRES_USER`). |
+| `DB_PASSWORD` | Contraseña (igual a `POSTGRES_PASSWORD`). |
 
-## Observability
+Los valores `DB_*` deben coincidir con los `POSTGRES_*`, ya que la aplicación usa los primeros y el contenedor los segundos.
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+### 2. Levantar los contenedores
 
-## Resources
+```bash
+docker compose up -d
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+Esto inicia:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- **PostgreSQL 16** en `localhost:${POSTGRES_PORT}` (contenedor `hopelink-postgres`), con volumen persistente.
+- **pgAdmin 4** en <http://localhost:5050> (contenedor `hopelink-pgadmin`). Ingresa con `PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD` y registra un servidor con host `postgres`, puerto `5432` y las credenciales `POSTGRES_*`.
 
-## Support
+Para verificar que la base está lista:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+docker compose ps
+```
 
-## Stay in touch
+### 3. Creación de tablas
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+No hay migraciones: TypeORM está configurado con `synchronize: true` y `autoLoadEntities: true`, por lo que las tablas (`users`, `affected_people`, `assistance_requests`) se crean automáticamente al iniciar la aplicación por primera vez.
 
-## License
+> `synchronize: true` es adecuado para desarrollo, pero no se recomienda en producción porque puede alterar o borrar datos al cambiar las entidades. Para producción, usa migraciones.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Detener o reiniciar la base de datos
+
+```bash
+docker compose stop          # detiene los contenedores (conserva los datos)
+docker compose down          # elimina los contenedores (conserva los datos)
+docker compose down -v       # elimina contenedores Y datos
+```
+
+## Ejecución
+
+```bash
+# desarrollo
+npm run start
+
+# desarrollo con recarga automática
+npm run start:dev
+
+# producción (requiere npm run build previo)
+npm run build
+npm run start:prod
+```
+
+La API queda disponible en <http://localhost:3000>. Puedes cambiar el puerto con la variable de entorno `PORT`.
+
+La aplicación valida globalmente los datos de entrada: se descartan los campos no declarados y se rechaza la petición si llegan campos desconocidos (`whitelist` y `forbidNonWhitelisted`).
+
+
+## Estructura del proyecto
+
+```text
+hope-link/
+├── src/
+│   ├── affected-people/
+│   ├── assistance-requests/
+│   ├── audit/
+│   ├── auth/
+│   ├── common/
+│   ├── config/
+│   ├── database/
+│   ├── deliveries/
+│   ├── emergencies/
+│   ├── health/
+│   ├── inventory/
+│   ├── prioritization/
+│   ├── shelters/
+│   ├── supplies/
+│   ├── users/
+│   └── (app.module.ts, main.ts, ...)
+├── test/
+├── .env.example
+├── .gitignore
+├── .prettierrc
+├── docker-compose.yml
+├── jest.config.ts
+├── nest-cli.json
+├── oxlint.json
+├── package.json
+├── package-lock.json
+├── tsconfig.build.json
+├── tsconfig.json
+└── README.md
+```
