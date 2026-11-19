@@ -8,8 +8,8 @@ import { AssistanceRequest } from '../../assistance-requests/entities/assistance
 
 @Entity('affected_people')
 export class AffectedPerson {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   nombre: string;

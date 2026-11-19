@@ -1,36 +1,36 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateAffectedPersonDto } from './dto/create-affected-person.dto';
 import { UpdateAffectedPersonDto } from './dto/update-affected-person.dto';
-
-export interface AffectedPerson extends CreateAffectedPersonDto {
-  id: string;
-}
+import { AffectedPerson } from './entities/affected-person.entity';
 
 @Injectable()
 export class AffectedPeopleService {
-  private readonly affectedPeople: AffectedPerson[] = [];
+  constructor(
+    @InjectRepository(AffectedPerson)
+    private readonly affectedPeopleRepo: Repository<AffectedPerson>,
+  ) {}
 
-  create(personData: CreateAffectedPersonDto) {
-    const person: AffectedPerson = { id: randomUUID(), ...personData };
-    this.affectedPeople.push(person);
+  async create(personData: CreateAffectedPersonDto) {
+    const person = this.affectedPeopleRepo.create(personData);
+    const savedPerson = await this.affectedPeopleRepo.save(person);
 
     return {
       message: 'Persona afectada registrada con éxito',
-      data: person,
+      data: savedPerson,
     };
   }
 
-  findAll(nivelVulnerabilidad?: string) {
-    const people = nivelVulnerabilidad
-      ? this.affectedPeople.filter(
-          (person) => person.nivelVulnerabilidad === nivelVulnerabilidad,
-        )
-      : this.affectedPeople;
+  async findAll(nivelVulnerabilidad?: string) {
+    const people = await this.affectedPeopleRepo.find({
+      where: nivelVulnerabilidad ? { nivelVulnerabilidad } : {},
+      relations: { solicitudes: true },
+    });
 
     return {
       message: 'Personas afectadas encontradas',
@@ -38,37 +38,51 @@ export class AffectedPeopleService {
     };
   }
 
-  findOne(id: string) {
-    const person = this.affectedPeople.find((item) => item.id === id);
+  async findOne(id: string) {
+    const person = await this.affectedPeopleRepo.findOne({
+      where: { id },
+      relations: { solicitudes: true },
+    });
     if (!person) {
       throw new NotFoundException(
         `Persona afectada con ID ${id} no encontrada`,
       );
     }
-    return person;
-  }
-
-  update(id: string, changes: UpdateAffectedPersonDto) {
-    if (Object.keys(changes).length === 0) {
-      throw new BadRequestException('Debe enviar al menos un campo para actualizar');
-    }
-
-    const person = this.findOne(id);
-    Object.assign(person, changes);
     return {
-      message: 'Persona afectada actualizada con éxito',
+      message: 'Persona afectada encontrada',
       data: person,
     };
   }
 
-  remove(id: string) {
-    const index = this.affectedPeople.findIndex((person) => person.id === id);
-    if (index === -1) {
+  async update(id: string, changes: UpdateAffectedPersonDto) {
+    if (Object.keys(changes).length === 0) {
+      throw new BadRequestException('Debe enviar al menos un campo para actualizar');
+    }
+
+    const person = await this.affectedPeopleRepo.findOneBy({ id });
+    if (!person) {
       throw new NotFoundException(
         `Persona afectada con ID ${id} no encontrada`,
       );
     }
-    this.affectedPeople.splice(index, 1);
+
+    this.affectedPeopleRepo.merge(person, changes);
+    const updatedPerson = await this.affectedPeopleRepo.save(person);
+    return {
+      message: 'Persona afectada actualizada con éxito',
+      data: updatedPerson,
+    };
+  }
+
+  async remove(id: string) {
+    const person = await this.affectedPeopleRepo.findOneBy({ id });
+    if (!person) {
+      throw new NotFoundException(
+        `Persona afectada con ID ${id} no encontrada`,
+      );
+    }
+
+    await this.affectedPeopleRepo.remove(person);
     return { message: 'Persona afectada eliminada con éxito' };
   }
 }

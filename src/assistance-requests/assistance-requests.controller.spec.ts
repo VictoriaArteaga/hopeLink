@@ -17,7 +17,7 @@ describe('AssistanceRequestsController', () => {
   };
 
   const createDto: CreateAssistanceRequestDto = {
-    personaAfectadaId: 7,
+    personaAfectadaId: '9166296c-bb61-4e05-bf08-9293e3504693',
     tipoAyuda: 'Alimentos',
     descripcion: 'Familia sin acceso a alimentos',
   };

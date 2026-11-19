@@ -40,7 +40,7 @@ describe('AssistanceRequestsService', () => {
   let service: AssistanceRequestsService;
 
   const createDto: CreateAssistanceRequestDto = {
-    personaAfectadaId: 7,
+    personaAfectadaId: '9166296c-bb61-4e05-bf08-9293e3504693',
     tipoAyuda: 'Alimentos',
     descripcion: 'Familia sin acceso a alimentos',
   };
@@ -150,7 +150,7 @@ describe('AssistanceRequestsService', () => {
       } as any);
 
       expect(data.tipoAyuda).toBe('Alimentos');
-      expect(data.personaAfectadaId).toBe(7);
+      expect(data.personaAfectadaId).toBe(createDto.personaAfectadaId);
     });
 
     it('con null en unos campos actualiza los demás campos válidos', async () => {
@@ -164,7 +164,7 @@ describe('AssistanceRequestsService', () => {
       } as any);
 
       expect(data.tipoAyuda).toBe('Alimentos');
-      expect(data.personaAfectadaId).toBe(7);
+      expect(data.personaAfectadaId).toBe(createDto.personaAfectadaId);
       expect(data.descripcion).toBe('Nueva descripción');
       expect(data.prioridad).toBe(PriorityLevel.ALTA);
     });
