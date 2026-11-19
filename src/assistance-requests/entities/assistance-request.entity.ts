@@ -17,8 +17,8 @@ export class AssistanceRequest {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'persona_afectada_id' })
-  personaAfectadaId: number;
+  @Column({ name: 'persona_afectada_id', type: 'uuid' })
+  personaAfectadaId: string;
 
   @ManyToOne(() => AffectedPerson, (person) => person.solicitudes, {
     onDelete: 'CASCADE',

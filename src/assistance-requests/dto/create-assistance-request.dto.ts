@@ -1,17 +1,15 @@
 import {
   IsEnum,
-  IsInt,
   IsNotEmpty,
   IsOptional,
-  IsPositive,
   IsString,
+  IsUUID,
 } from 'class-validator';
 import { PriorityLevel } from '../enums/priority-level.enum';
 
 export class CreateAssistanceRequestDto {
-  @IsInt()
-  @IsPositive()
-  personaAfectadaId: number;
+  @IsUUID()
+  personaAfectadaId: string;
 
   @IsNotEmpty()
   @IsString()
