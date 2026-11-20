@@ -4,6 +4,8 @@ API REST para la gestión de ayuda humanitaria en situaciones de emergencia. Per
 
 Proyecto desarrollado para la asignatura Electiva I – Frameworks Web.
 
+**Link video de YouTube:** https://youtu.be/oaul4gcOAvQ
+
 ## Tecnologías
 
 - [NestJS](https://nestjs.com/) 12 (Node.js + TypeScript)
